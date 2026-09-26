@@ -2,17 +2,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main_game extends JPanel implements ActionListener {
     JFrame finestra;
     Timer timer;
-    Shape cercle;
+    List<Shape> shapeList = new ArrayList<>();
 
     public Main_game() {
         setBackground(Color.WHITE);
-
-        cercle = new Shape(50, 200, 50, 50, 1, -1, 4, 4);
-
+        shapeList.add(new Shape(50, 200, 50, 50, 1, 1, 4,4));
+        shapeList.add(new Shape(200, 50, 50, 50, 1, 1, 4,4));
+        shapeList.add(new Shape(500, 50, 50, 50, -1, 1, 4,4));
+        shapeList.add(new Shape(200, 400, 50, 50, 1, -1, 4,4));
         finestra = new JFrame();
         finestra.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         finestra.setSize(new Dimension(700, 500));
@@ -23,10 +26,21 @@ public class Main_game extends JPanel implements ActionListener {
         timer.start();
     }
 
+    public static void main(String[] args) {
+        Main_game joc = new Main_game();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        cercle.mou();
-        cercle.comprovarXoc(getWidth(),getHeight());
+        for (Shape shape : shapeList){
+            shape.mou();
+            shape.comprovarXoc(getWidth(),getHeight());
+        }
+        for (int i = 0; i < shapeList.size(); i++) {
+            for (int j = i + 1; j < shapeList.size(); j++) {
+                shapeList.get(i).comporbarXocAmb(shapeList.get(j));
+            }
+        }
         repaint();
     }
 
@@ -36,9 +50,8 @@ public class Main_game extends JPanel implements ActionListener {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
-        cercle.paint(g2);
-    }
-    public static void main(String[] args){
-    Main_game joc = new Main_game();
+        for (Shape shape : shapeList){
+            shape.paint(g2);
+        }
     }
 }

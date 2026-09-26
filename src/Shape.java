@@ -1,15 +1,17 @@
 import java.awt.*;
+import java.util.ArrayList;
 
 public class Shape {
 
+    private final int r;
+    int centerx;
+    int centery;
     private int velx;
     private int vely;
-
     private int x;
     private int dirx;
     private int y;
     private int diry;
-
     private int w;
     private int h;
 
@@ -22,6 +24,9 @@ public class Shape {
         this.diry = diry;
         setVelx(velx);
         setVely(vely);
+        this.r = w/2;
+        centerx = this.x + r;
+        centery = this.y + r;
     }
 
     public int getVelx() {
@@ -29,7 +34,7 @@ public class Shape {
     }
 
     public void setVelx(int velx) {
-        this.velx = Math.max(velx, 1);
+        this.velx = Math.max(velx, 0);
     }
 
     public int getVely() {
@@ -37,7 +42,7 @@ public class Shape {
     }
 
     public void setVely(int vely) {
-        this.vely = Math.max(vely, 1);
+        this.vely = Math.max(vely, 0);
     }
 
     public int getX() {
@@ -88,44 +93,93 @@ public class Shape {
         this.h = h;
     }
 
-    public void paint(Graphics g2){
+    public void paint(Graphics g2) {
         g2.setColor(Color.BLUE);
         g2.fillOval(x, y, w, h);
     }
 
-    public void mou(){
+    public void mou() {
         x = x + dirx * velx;
         y = y + diry * vely;
+        centerx = x + r;
+        centery = y + r;
     }
 
-    private void rebotarX(){
+    private void rebotarX() {
         dirx = -dirx;
     }
+
     public void rebotarY() {
         diry = -diry;
+    }
+
+    public void comporbarXocAmb(Shape other){
+        int distancex = this.centerx - other.centerx;
+        int distancey = this.centery - other.centery;
+        double distancia2 = (distancex * distancex) + (distancey * distancey);
+
+        int sumaRad = this.r + other.r;
+        double sumaRad2 = sumaRad * sumaRad;
+        if (distancia2 <= sumaRad2 && distancia2 > 0) {
+            // 1. Swap movement between the two shapes
+            int tempDirx = this.dirx;
+            int tempDiry = this.diry;
+            int tempVelx = this.velx;
+            int tempVely = this.vely;
+
+            this.dirx = other.dirx;
+            this.diry = other.diry;
+            this.velx = other.velx;
+            this.vely = other.vely;
+
+            other.dirx = tempDirx;
+            other.diry = tempDiry;
+            other.velx = tempVelx;
+            other.vely = tempVely;
+
+            // 2. Push them apart so they don't stay overlapping
+            separar(other, Math.sqrt(distancia2), sumaRad);
+        }
+    }
+    private void separar(Shape other, double distancia, int sumaRad) {
+        if (distancia == 0) distancia = 0.01; // avoid divide-by-zero if centers coincide
+
+        double overlap = (sumaRad - distancia) / 2.0;
+        double dx = (this.centerx - other.centerx) / distancia;
+        double dy = (this.centery - other.centery) / distancia;
+
+        this.x += (int)(dx * overlap);
+        this.y += (int)(dy * overlap);
+        other.x -= (int)(dx * overlap);
+        other.y -= (int)(dy * overlap);
+
+        this.centerx = this.x + this.r;
+        this.centery = this.y + this.r;
+        other.centerx = other.x + other.r;
+        other.centery = other.y + other.r;
     }
 
     public void comprovarXoc(int ampladaPanell, int alcadaPanell) {
         // Left wall
         if (x <= 0) {
             x = 0;
-            if (dirx < 0) rebotarX();
+            rebotarX();
         }
         // Right wall
         else if (x + w >= ampladaPanell) {
             x = ampladaPanell - w;
-            if (dirx > 0) rebotarX();
+            rebotarX();
         }
 
         // Top wall
         if (y <= 0) {
             y = 0;
-            if (diry < 0) rebotarY();
+            rebotarY();
         }
         // Bottom wall
         else if (y + h >= alcadaPanell) {
             y = alcadaPanell - h;
-            if (diry > 0) rebotarY();
+            rebotarY();
         }
     }
 }
